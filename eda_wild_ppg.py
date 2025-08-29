@@ -4,7 +4,7 @@ import pandas as pd
 from utils import generate_profiling_report
 
 # read data
-data_filepath = 'data/WildPPG_data_sample_56.csv'
+data_filepath = 'src/supervised_baselines/data/wild_ppg/WildPPG_data_sample_56.csv'
 
 # apply profiling
 title = "PPG Profiling"
