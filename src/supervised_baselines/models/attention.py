@@ -81,11 +81,15 @@ class PositionalEncoding(nn.Module):
         pe = torch.zeros(max_len, d_model)
         # position vector based on the max_len (the sequence length). [0,1,2,3...n]
         position = torch.arange(0, max_len).unsqueeze(1)
-        #
+        # calculate the division term for the sine/cosine frequencies
         div_term = torch.exp(torch.arange(0, d_model, 2) * -(math.log(10000.0) / d_model))
+        # apply sine to even indices in the embedding dim
         pe[:, 0::2] = torch.sin(position * div_term)
+        # apply cosine to odd indices in the embedding dim
         pe[:, 1::2] = torch.cos(position * div_term)
+        # add a batch dimension and register as a non-trainable buffer
         pe = pe.unsqueeze(0)
+        # (1, max_len, d_model)
         self.register_buffer('pe', pe)
 
     def forward(self, x):
@@ -124,9 +128,19 @@ class Attention(nn.Module):
         """
         b, n, _, h = *x.shape, self.heads
         qkv = self.to_qkv(x).chunk(3, dim=-1)
+        # rearrange order the tensors based on their dimensions
+        # We can to generate the weight matrix for keys, queries, and values for each head, in each batch, with the input embedding dimension
+        # qkv has shape (b, n, (h, d)) -> (batch, sequence_length, (heads, head_dimension)), heads and dimension heads are grouped in one dimension
+        # q,k,v has shape (b, h, n, d) -> (batch, heads, sequence_length, head_dimension)
+        # q,k,v takes the same output matrix, remember they depend on the same input,
+        # all of them have the same batch, in different heads, with sames sequence length, and same dimensions
         q, k, v = map(lambda t: rearrange(t, 'b n (h d) -> b h n d', h=h), qkv)
 
         # Calculate the dot product, using the queries and keys, Apply normalization based on dimension using self.scale
+        # q has shape (b, h, n, d) -> (batch, heads, sequence_length, head_dimension), n is named i in the Einstein notation above
+        # k has shape (b, h, n, d) -> (batch, heads, sequence_length, head_dimension), n is named j in the Einstein notation above
+        # dots has shape (b, h, n, n) -> (batch, heads, sequence_length, sequence_length), n is named i and j in the Einstein notation above
+        # read more about Einstein notation https://forbo7.github.io/forblog/posts/16_einstein_summation_notation.html
         dots = torch.einsum('bhid,bhjd->bhij', q, k) * self.scale
 
         # define if use mask to avoid data leakage, and use self-attention
@@ -141,9 +155,16 @@ class Attention(nn.Module):
         self.attn = dots.softmax(dim=-1)
 
         # Using Einstein notation apply attention multiplication with values
+        # attention head has shape (b, h, n, n) -> (batch, heads, sequence_length, sequence_length), n is named i and j in the Einstein notation above
+        # v has shape (b, h, n, d) -> (batch, heads, sequence_length, head_dimension), n is named j in the Einstein notation above
+        # out has shape (b, h, n, d) -> (batch, heads, sequence_length, head_dimension), n is named i in the Einstein notation above
         # https://docs.pytorch.org/docs/stable/generated/torch.einsum.html
+        # read more about Einstein notation https://forbo7.github.io/forblog/posts/16_einstein_summation_notation.html
         out = torch.einsum('bhij,bhjd->bhid', self.attn, v)
         # Change the position of the result to have the expected output
+        # rearrange order the tensors based on their dimensions, the head, and head_dimension are combined in one dimension
+        # out as input has shape (b, h, n, d) -> (batch, heads, sequence_length, head_dimension)
+        # out as output has shape (b, n, (h, d)) -> (batch, sequence_length, (heads, head_dimension)), the same shape we defined to_qkv
         out = rearrange(out, 'b h n d -> b n (h d)')
         # apply the output layer
         out = self.to_out(out)
