@@ -1,6 +1,7 @@
 import mlflow
-from src.supervised_baselines.data_preprocess.preprocess import preprocess
-from src.supervised_baselines.train.train_transformer import train
+from src.supervised_baselines.data_preprocess.preprocess_xsltm import preprocess
+from src.supervised_baselines.train.train_xsltm import train
+from src.supervised_baselines.utils.constants import MLFLOW_HOST, MLFLOW_PORT
 
 METHOD_LABELS = 'heard_rate'
 THRESHOLD_LABELS = 2000
@@ -8,11 +9,9 @@ THRESHOLD_LABELS = 2000
 #THRESHOLD_LABELS = 1.1
 
 # initialize MLFLow
-MLFLOW_HOST='127.0.0.1'
-MLFLOW_PORT=5000
 mlflow.set_tracking_uri(uri=f"http://{MLFLOW_HOST}:{MLFLOW_PORT}")
 # set experiment name
-mlflow.set_experiment(f"wild_ppg_transformer_classification_{METHOD_LABELS}_running_activity")
+mlflow.set_experiment(f"transformer_wild_ppg_classification_{METHOD_LABELS}_running_activity")
 
 # init variables
 data_filepath = './data/WildPPG_data.csv'
@@ -21,6 +20,7 @@ STEP_SIZE = 64         # overlap between windows
 
 NUM_EPOCHS = 10
 
+print("run training pipeline")
 # Start an MLFlow run context to log parameters, metrics, and artifacts
 with mlflow.start_run() as run:
     # apply preprocessing
@@ -35,6 +35,5 @@ with mlflow.start_run() as run:
           X_val,
           y_train,
           y_val,
-          window_size=WINDOW_SIZE,
           num_epochs=NUM_EPOCHS,
           method=METHOD_LABELS)
