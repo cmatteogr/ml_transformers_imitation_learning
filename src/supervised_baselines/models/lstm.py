@@ -3,14 +3,14 @@ import torch.nn as nn
 import math
 
 
-class sLTM(nn.Module):
+class LSTM(nn.Module):
     """
     sLTM block, the core of the xSLTM model.
     This implementation is based on the paper: "xLSTM: Extended Long Short-Term Memory"
     https://arxiv.org/abs/2405.04517
     """
     def __init__(self, input_size, hidden_size, proj_size):
-        super(sLTM, self).__init__()
+        super(LSTM, self).__init__()
         self.input_size = input_size
         self.hidden_size = hidden_size
         self.proj_size = proj_size

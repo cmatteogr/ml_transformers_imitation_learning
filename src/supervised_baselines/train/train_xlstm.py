@@ -4,7 +4,7 @@ from torch.utils.data import TensorDataset, DataLoader
 import mlflow
 import optuna
 
-from src.supervised_baselines.models.xsltm import xSLTM
+from src.supervised_baselines.models.xlstm import xLSTM
 
 
 def train(X_train,
@@ -47,7 +47,7 @@ def train(X_train,
         dropout = trial.suggest_float('dropout', 0.1, 0.5)
 
         # Initialize the xSLTM model with trial parameters
-        model = xSLTM(
+        model = xLSTM(
             input_size=n_features,
             hidden_size=hidden_size,
             num_layers=num_layers,
@@ -123,7 +123,7 @@ def train(X_train,
 
     # --- Train the final model with the best hyperparameters ---
     print("\n--- Training Final Model with Best Parameters ---")
-    final_model = xSLTM(
+    final_model = xLSTM(
         input_size=n_features,
         hidden_size=best_params['hidden_size'],
         num_layers=best_params['num_layers'],

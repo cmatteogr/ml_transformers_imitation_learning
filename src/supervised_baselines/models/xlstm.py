@@ -1,22 +1,22 @@
 import torch
 import torch.nn as nn
 
-from src.supervised_baselines.models.sltm import sLTM
+from src.supervised_baselines.models.lstm import LSTM
 
 
-class xSLTM(nn.Module):
+class xLSTM(nn.Module):
     """
     xSLTM Model for sequence classification.
     It uses one or more sLTM layers followed by a linear classifier head.
     """
     def __init__(self, input_size, hidden_size, num_layers, n_classes, dropout=0.1):
-        super(xSLTM, self).__init__()
+        super(xLSTM, self).__init__()
         self.hidden_size = hidden_size
         self.num_layers = num_layers
 
         # Create multiple sLTM layers
-        self.sltms = nn.ModuleList([
-            sLTM(input_size if i == 0 else hidden_size, hidden_size, hidden_size)
+        self.lstms = nn.ModuleList([
+            LSTM(input_size if i == 0 else hidden_size, hidden_size, hidden_size)
             for i in range(num_layers)
         ])
 
@@ -40,7 +40,7 @@ class xSLTM(nn.Module):
         for t in range(seq_len):
             input_t = x[:, t, :]
             for i in range(self.num_layers):
-                h_next, new_states = self.sltms[i](input_t, layer_states[i])
+                h_next, new_states = self.lstms[i](input_t, layer_states[i])
                 layer_states[i] = new_states
                 input_t = self.dropout(h_next) # Apply dropout between layers
 

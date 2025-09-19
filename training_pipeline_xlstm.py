@@ -1,6 +1,6 @@
 import mlflow
-from src.supervised_baselines.data_preprocess.preprocess_xsltm import preprocess
-from src.supervised_baselines.train.train_xsltm import train
+from src.supervised_baselines.data_preprocess.preprocess_xlstm import preprocess
+from src.supervised_baselines.train.train_xlstm import train
 from src.supervised_baselines.utils.constants import MLFLOW_HOST, MLFLOW_PORT
 
 METHOD_LABELS = 'heard_rate'
@@ -11,7 +11,7 @@ THRESHOLD_LABELS = 2000
 # initialize MLFLow
 mlflow.set_tracking_uri(uri=f"http://{MLFLOW_HOST}:{MLFLOW_PORT}")
 # set experiment name
-mlflow.set_experiment(f"transformer_wild_ppg_classification_{METHOD_LABELS}_running_activity")
+mlflow.set_experiment(f"xsltm_wild_ppg_classification_{METHOD_LABELS}_running_activity")
 
 # init variables
 data_filepath = './data/WildPPG_data.csv'
